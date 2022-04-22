@@ -14,12 +14,15 @@ import {
   Delete,
   Put,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private userService: UserService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List of users' })
   @HttpCode(HttpStatus.OK)
   list(@Query('limit') limit: number, @Query('offset') offset: number) {
     return this.userService.findAll({ limit, offset });
