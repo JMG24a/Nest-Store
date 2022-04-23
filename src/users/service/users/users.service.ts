@@ -1,11 +1,15 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ProductsService } from 'src/products/service/product/products.service';
 import { UsersEntity } from 'src/users/entity/user.entity';
 import { createDTO, updateDTO } from '../../DTO/user.dto';
+import { Db } from 'mongodb';
 
 @Injectable()
 export class UserService {
-  constructor(private productsService: ProductsService) {}
+  constructor(
+    @Inject('mongoDB') private db: Db,
+    private productsService: ProductsService,
+  ) {}
 
   counterId = 0;
   users: UsersEntity[] = [
@@ -18,11 +22,13 @@ export class UserService {
     },
   ];
 
-  findAll(options) {
+  async findAll(options) {
     if (options.limit || options.offset) {
       return { body: this.users };
     }
-    return { body: this.users };
+    const collection = this.db.collection('users');
+    const success = await collection.find().toArray();
+    return success;
   }
 
   findOne(id: number) {
