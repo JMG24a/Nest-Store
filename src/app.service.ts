@@ -1,16 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
-import config from './config';
+import { configAs } from './environments.config'
 
 @Injectable()
 export class AppService {
   constructor(
-    @Inject(config.KEY) private configService: ConfigType<typeof config>,
-    @Inject('Api_Json') private tasks: any[],
-  ) {}
+    @Inject(configAs.KEY) private configService: ConfigType<typeof configAs>
+  ){}
 
   getHello(): string {
-    console.log(this.tasks);
-    return 'Hello World!' + ' ' + this.configService.apiKey;
+    console.log(this.configService.database.name)
+    return 'Hi, Jose!';
+  }
+
+  getHelloWithLastName(name: string, age: number, myLimit: number): string {
+    return `Hello, ${name} and my age is ${age}, limit: ${myLimit}!`;
   }
 }

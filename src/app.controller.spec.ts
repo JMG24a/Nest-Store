@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { AppModule } from './app.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -7,6 +8,7 @@ describe('AppController', () => {
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
       controllers: [AppController],
       providers: [AppService],
     }).compile();
@@ -15,8 +17,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello('1', {})).toBe('Hello World!');
+    it('should return greeting', () => {
+      expect(appController.getHello()).toBe('Hi, Jose!');
     });
   });
 });
