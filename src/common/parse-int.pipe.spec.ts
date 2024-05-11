@@ -1,7 +1,7 @@
-import { ParseIntPipe } from './parse-int.pipe';
+import { ParseInt } from './parse-int.pipe';
 
 describe('ParseIntPipe', () => {
   it('should be defined', () => {
-    expect(new ParseIntPipe()).toBeDefined();
+    expect(new ParseInt()).toBeDefined();
   });
 });

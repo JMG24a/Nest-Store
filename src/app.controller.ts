@@ -7,7 +7,6 @@ export class AppController {
 
   @Get('home/:id')
   getHello(@Param('id') id: string, @Body() body: any): string {
-    console.log(id, body);
     return this.appService.getHello();
   }
 }
