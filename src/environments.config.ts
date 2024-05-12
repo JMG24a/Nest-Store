@@ -5,8 +5,8 @@ export const configAs = registerAs('config', () => {
   // export default
   return {
     database: {
-      name: process.env.DATABASE_NAME,
-      port: process.env.DATABASE_PORT,
+      name: process.env.DATA_BASE_NAME,
+      port: process.env.DATA_BASE_PORT,
     },
     apiKey: process.env.API_KEY,
     api: process.env.API,

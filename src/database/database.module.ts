@@ -26,4 +26,4 @@ const API_KEY_PROD = 'useValue';
   ],
   exports: ['TASK', 'USE_VALUE'],
 })
-export class GlobalModule {}
+export class DataBaseModule {}

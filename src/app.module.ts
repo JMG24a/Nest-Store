@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { AppController } from './app.controller';
 import { ProductsModule } from './products/products.module';
 import { UsersModule } from './users/users.module';
-import { GlobalModule } from './global/database.module';
+import { DataBaseModule } from './database/database.module';
 import { environments, configAs } from './environments.config';
 
 const configModule = ConfigModule.forRoot({
@@ -26,7 +26,7 @@ const configModule = ConfigModule.forRoot({
     configModule,
     ProductsModule,
     UsersModule,
-    GlobalModule,
+    DataBaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
