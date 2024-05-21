@@ -1,70 +1,76 @@
+import { Repository, Between, FindOptionsWhere } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { ProductsService } from '../../../products/service/product/products.service';
-import { UsersEntity } from '../../entity/user.entity';
-import { createDTO, updateDTO } from '../../DTO/user.dto';
+// my dependencies
+import { OptionsFilter } from 'src/utils/filter.dto';
+import { CreateDTO, UpdateDTO } from '../../dto/user.dto';
+import { Users as usersEntity } from '../../entity/user.entity';
+import { CustomersService } from '../customers/customers.service';
+// import { ProductsService } from '../../../products/service/product/products.service';
 
 @Injectable()
-export class UserService {
-  constructor(private productsService: ProductsService) {}
+export class UsersService {
+  constructor(
+    @InjectRepository(usersEntity) private usersRepository: Repository<usersEntity>,
+    // private productsService: ProductsService,
+    private customersService: CustomersService,
+  ) {}
 
-  counterId = 0;
-  users: UsersEntity[] = [
-    {
-      id: 0,
-      name: 'jose',
-      email: 'mail@mail.com',
-      phon: '+584145035188',
-      address: 'called 3 between 1 y 2',
-    },
-  ];
+  async findAll(options?: OptionsFilter) {
+    if(options){
+      const where: FindOptionsWhere<usersEntity> = {};
+      const { limit, offset, role } = options;
 
-  findAll(options) {
-    if (options.limit || options.offset) {
-      return { body: this.users };
+      if(role){
+        where.role = role
+      }
+
+      return await this.usersRepository.find({
+        where,
+        take: limit,
+        skip: offset
+      });
     }
-    return { body: this.users };
+    return await this.usersRepository.find();
   }
 
-  findOne(id: number) {
-    const index = this.users.findIndex((item) => item.id === id);
-    if (index === -1) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+  async findOne(id: number) {
+    const product = await this.usersRepository.findOne({
+      where: {id},
+      relations: ['customer']
+    });
+    if (!product) {
+      throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
-    const user = this.users[index];
-    return { index, user };
+    return product;
   }
 
-  create(payload: createDTO) {
-    this.counterId = this.counterId + 1;
-    const newProduct = {
-      id: this.counterId,
-      ...payload,
-    };
-    this.users.push(newProduct);
-    return newProduct;
+  async create(payload: CreateDTO) {
+    const newUser = this.usersRepository.create(payload);
+    if (payload.customerId) {
+      const customer = await this.customersService.findOne(payload.customerId);
+      newUser.customer = customer;
+    }
+    return this.usersRepository.save(newUser);
   }
 
-  update(id: number, payload: updateDTO) {
-    const { index } = this.findOne(id);
-    let update = this.users[index];
-    update = { ...update, ...payload };
-    this.users[index] = update;
-    return this.users[index];
+  async update(id: number, payload: UpdateDTO) {
+    const user = await this.findOne(id);
+    this.usersRepository.merge(user, payload);
+    return this.usersRepository.save(user);
   }
 
   delete(id: number) {
-    const user = this.findOne(id);
-    this.users.splice(user.index, 1);
-    return { body: 'delete success' };
+    return this.usersRepository.delete(id)
   }
 
-  getOrderByUser(id: number) {
-    const { user } = this.findOne(id);
-    const products = this.productsService.findAll({});
-    return {
-      order: new Date(),
-      user,
-      products,
-    };
-  }
+  // async getOrderByUser(id: number) {
+  //   const user = await this.findOne(id);
+  //   const products = await this.productsService.find();
+  //   return {
+  //     order: new Date(),
+  //     user,
+  //     products,
+  //   };
+  // }
 }

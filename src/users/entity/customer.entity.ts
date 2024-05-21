@@ -5,26 +5,28 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
-  JoinColumn,
+  OneToMany,
 } from 'typeorm';
-import { Customer } from './customer.entity';
-import { Exclude } from 'class-transformer'
+import { Users } from './user.entity';
+import { Order } from './order.entity';
 
-@Entity({name: 'users'})
-export class Users {
+@Entity({name: 'customers'})
+export class Customer {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column({ type: 'varchar', length: 255 })
-  email: string;
+  name: string;
 
   @Column({ type: 'varchar', length: 255 })
-  password: string; // encript
+  lastName: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  role: string;
+  @Column({ type: 'varchar', length: 255 })
+  phon: string;
 
-  @Exclude()
+  @Column({ type: 'text'})
+  address: string;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',
@@ -32,7 +34,6 @@ export class Users {
   })
   createAt: Date;
 
-  @Exclude()
   @UpdateDateColumn({
     name: 'update_at',
     type: 'timestamptz',
@@ -40,7 +41,9 @@ export class Users {
   })
   updateAt: Date;
 
-  @OneToOne(() => Customer, (customer) => customer.user, { nullable: true })
-  @JoinColumn({name: 'customer_id'})
-  customer: Customer;
+  @OneToOne(() => Users, (user) => user.customer, { nullable: true })
+  user: Users;
+
+  @OneToMany(() => Order, (order) => order.customer)
+  orders: Order[];
 }

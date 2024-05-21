@@ -1,6 +1,3 @@
-import { ParseInt } from '../../../common/parse-int.pipe';
-import { createDTO, updateDTO } from '../../DTO/user.dto';
-import { UserService } from '../../service/users/users.service';
 import {
   Body,
   Controller,
@@ -15,43 +12,46 @@ import {
   Put,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+// my dependencies
+import { OptionsFilter } from 'src/utils/filter.dto';
+import { ParseInt } from '../../../common/parse-int.pipe';
+import { CreateDTO, UpdateDTO } from '../../dto/user.dto';
+import { UsersService } from '../../service/users/users.service';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UsersService) {}
 
   @Get()
   @ApiOperation({ summary: 'List of users' })
   @HttpCode(HttpStatus.OK)
-  list(@Query('limit') limit: number, @Query('offset') offset: number) {
-    return this.userService.findAll({ limit, offset });
-  }
-
-  @Get('user/:id')
-  @HttpCode(HttpStatus.OK)
-  getOrder(@Param('id', ParseIntPipe) id: number) {
-    const success = this.userService.getOrderByUser(id);
-    return { body: success };
+  list(@Query() params: OptionsFilter,) {
+    return this.userService.findAll(params);
   }
 
   @Get(':id')
-  getOne(@Param('id', ParseInt) id: number) {
-    const success = this.userService.findOne(id);
-    return {
-      body: success.user,
-    };
+  async getOne(@Param('id', ParseInt) id: number) {
+    const success = await this.userService.findOne(id);
+    return success
   }
+
+  // @Get('user/:id')
+  // @HttpCode(HttpStatus.OK)
+  // getOrder(@Param('id', ParseIntPipe) id: number) {
+  //   const success = this.userService.getOrderByUser(id);
+  //   return success;
+  // }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() body: createDTO) {
+  create(@Body() body: CreateDTO) {
     return this.userService.create(body);
   }
 
   @Put(':id')
   @HttpCode(HttpStatus.ACCEPTED)
-  update(@Body() body: updateDTO, @Param('id', ParseIntPipe) id: number) {
+  update(@Body() body: UpdateDTO, @Param('id', ParseIntPipe) id: number) {
     return this.userService.update(id, body);
   }
 
