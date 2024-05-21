@@ -9,7 +9,7 @@ export class AppService {
   ){}
 
   getHello(): string {
-    console.log(this.configService.database.name)
+    console.log(this.configService.dataBasePg.user)
     return 'Hi, Jose!';
   }
 

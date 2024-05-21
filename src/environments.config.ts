@@ -4,12 +4,26 @@ import { registerAs } from '@nestjs/config';
 export const configAs = registerAs('config', () => {
   // export default
   return {
-    database: {
-      name: process.env.DATA_BASE_NAME,
-      port: process.env.DATA_BASE_PORT,
-    },
-    apiKey: process.env.API_KEY,
     api: process.env.API,
+    dataBasePg: {
+      db: process.env.POSTGRES_DB,
+      host: process.env.POSTGRES_HOST,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      port: parseInt(process.env.POSTGRES_PORT, 10),
+    },
+    typeorm: {
+      host: process.env.TYPEORM_HOST,
+      type: process.env.TYPEORM_TYPE,
+      port: parseInt(process.env.TYPEORM_PORT, 10),
+      user: process.env.TYPEORM_USER,
+      password: process.env.TYPEORM_PASSWORD,
+      db: process.env.TYPEORM_DATABASE_NAME,
+      entity: process.env.TYPEORM_ENTITY,
+      migrations: process.env.TYPEORM_MIGRATIONS,
+      dir: process.env.TYPEORM_MIGRATIONS_DIR,
+      table: process.env.TYPEORM_MIGRATIONS_TABLE,
+    },
   };
 });
 
