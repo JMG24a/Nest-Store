@@ -1,22 +1,17 @@
-import { Brand } from './brands.entity'
-import { Category } from './categories.entity'
+import { Product } from './products.entity'
 import {
   PrimaryGeneratedColumn,
   Column,
   Entity,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToOne,
   ManyToMany,
-  JoinTable,
-  Index,
-  JoinColumn
+  JoinTable
 } from 'typeorm';
 
 
-@Entity({name: 'products'})
-@Index(['price',])
-export class Product {
+@Entity({name: 'categories'})
+export class Category {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
@@ -25,15 +20,6 @@ export class Product {
 
   @Column({type: 'text'})
   description: string;
-
-  @Column({type: 'int'})
-  price: number;
-
-  @Column({type: 'int'})
-  stock: number;
-
-  @Column({type: 'varchar'})
-  image: string;
 
   @CreateDateColumn({
     name: 'created_at',
@@ -49,10 +35,11 @@ export class Product {
   })
   updateAt: Date;
 
-  @ManyToOne(() => Brand, (brand) => brand.products)
-  @JoinColumn({ name: 'brand_id'})
-  brand: Brand;
-
-  @ManyToMany(() => Category, (category) => category.product)
-  category: Category[];
+  @ManyToMany(() => Product, (product) => product.category)
+  @JoinTable({
+    name: 'products_categories',
+    joinColumn: {name: 'product_id'},
+    inverseJoinColumn: {name: 'category_id'}
+  })
+  product: Product[];
 }

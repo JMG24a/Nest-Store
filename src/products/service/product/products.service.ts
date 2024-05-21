@@ -1,58 +1,98 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Product } from '../../entity/products.entity';
-import { createDTO, updateDTO } from '../../DTO/products.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Between, FindOptionsWhere, In, Repository } from 'typeorm';
+
+import { Product as productEntity } from '../../entity/products.entity';
+import { Category as categoryEntity } from '../../entity/categories.entity';
+import { Brand as brandsEntity } from '../../entity/brands.entity';
+import { createDTO, updateDTO } from '../../dto/products.dto';
+import { OptionsFilter } from 'src/utils/filter.dto';
 
 @Injectable()
 export class ProductsService {
-  private counterId = 1;
-  private products: Product[] = [
-    {
-      id: 1,
-      name: 'Product 1',
-      description: 'bla bla',
-      price: 122,
-      image: '',
-      stock: 12,
-    },
-  ];
+  constructor(
+    @InjectRepository(productEntity) private productRepository: Repository<productEntity>,
+    @InjectRepository(categoryEntity) private categoryRepository: Repository<categoryEntity>,
+    @InjectRepository(brandsEntity) private brandRepository: Repository<brandsEntity>,
+  ){}
 
-  findAll(options) {
-    if (options.limit || options.offset) {
-      return { body: this.products };
+  async findAll(options: OptionsFilter) {
+    const { maxPrice, minPrice } = options
+    const { limit, offset } = options
+    const where: FindOptionsWhere<productEntity> = {};
+
+    if(maxPrice && minPrice){
+      where.price = Between(minPrice, maxPrice)
     }
-    return this.products;
+    return await this.productRepository.find({
+      where,
+      take: limit,
+      skip: offset
+    })
   }
 
-  findOne(id: number) {
-    const index = this.products.findIndex((item) => item.id == id);
-    if (index === -1) {
+  async findOne(id: number) {
+    const product = await this.productRepository.findOne({
+      where: {id},
+      relations: ['brand', 'category']
+    });
+    if (!product) {
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
     }
-    const user = this.products[index];
-    return { index, user };
+    return product;
   }
 
-  create(payload: createDTO) {
-    this.counterId = this.counterId + 1;
-    const newProduct = {
-      id: this.counterId,
-      ...payload,
-    };
-    this.products.push(newProduct);
-    return newProduct;
+  async create(payload: createDTO) {
+    const newProduct = this.productRepository.create(payload);
+    if (payload.brandId) {
+      const brand = await this.brandRepository.findOne({where: {id: payload.brandId}});
+      newProduct.brand = brand;
+    }
+    if (payload.categoriesId) {
+      const category = await this.categoryRepository.findBy({ id: In((payload.categoriesId)) });
+      newProduct.category = category;
+    }
+    return this.productRepository.save(newProduct);
   }
 
-  update(id: number, payload: updateDTO) {
-    const { index } = this.findOne(id);
-    let update = this.products[index];
-    update = { ...update, ...payload };
-    this.products[index] = update;
-    return this.products[index];
+  async update(id: number, payload: updateDTO) {
+    const product = await this.productRepository.findOneBy({id});
+    // challenge many to one
+    if (payload.brandId) {
+      const brand = await this.brandRepository.findOne({where: {id: payload.brandId}});
+      product.brand = brand;
+    }
+    // challenge many to many
+    if (payload.brandId) {
+      const category = await this.categoryRepository.findBy({id: In(payload.categoriesId)});
+      product.category = category;
+    }
+    this.productRepository.merge(product, payload);
+    return this.productRepository.save(product);
   }
 
   delete(id: number) {
-    const user = this.findOne(id);
-    this.products.splice(user.index, 1);
-    return { body: 'delete success' };
+    return this.productRepository.delete(id)
+  }
+
+  async addCategoryToProduct(productId: number, categoryId: number) {
+    const product = await this.productRepository.findOne({
+      where: {id: productId},
+      relations: ['category'],
+    });
+    const category = await this.categoryRepository.findOne({where: {id: categoryId}});
+    product.category.push(category);
+    return this.productRepository.save(product);
+  }
+
+  async removeCategoryByProduct(productId: number, categoryId: number) {
+    const product = await this.productRepository.findOne({
+      where: {id: productId},
+      relations: ['category'],
+    });
+    product.category = product.category.filter(
+      (item) => item.id !== categoryId,
+    );
+    return this.productRepository.save(product);
   }
 }
