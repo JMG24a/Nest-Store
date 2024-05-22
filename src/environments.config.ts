@@ -1,9 +1,16 @@
 /*---------------------------- config ENV  -------------------------------------------*/
-import { registerAs } from '@nestjs/config';
+import { ConfigModule, registerAs } from '@nestjs/config';
+import * as Joi from 'joi';
+
+export const environments = {
+  dev: '.env',
+  prod: '.prod.env',
+  stag: '.stag.env',
+};
 
 export const configAs = registerAs('config', () => {
-  // export default
   return {
+    keyJwt: process.env.KEY,
     api: process.env.API,
     dataBasePg: {
       db: process.env.POSTGRES_DB,
@@ -27,23 +34,31 @@ export const configAs = registerAs('config', () => {
   };
 });
 
-export const environments = {
-  dev: '.env',
-  prod: '.prod.env',
-  stag: '.stag.env',
-};
+export const configModule = ConfigModule.forRoot({
+  envFilePath: environments[process.env.NODE_ENV] || '.env',
+  load: [configAs],
+  isGlobal: true,
+  validationSchema: Joi.object({
+    // COMMONS envs
+    KEY: Joi.string().required(),
+    API: Joi.string().required(),
+    // POSTGRES envs
+    POSTGRES_DB: Joi.string().required(),
+    POSTGRES_HOST: Joi.string().required(),
+    POSTGRES_USER: Joi.string().required(),
+    POSTGRES_PASSWORD: Joi.string().required(),
+    POSTGRES_PORT: Joi.number().required(),
+    // TYPEORM envs
+    TYPEORM_HOST: Joi.string().required(),
+    TYPEORM_TYPE: Joi.string().required(),
+    TYPEORM_PORT: Joi.string().required(),
+    TYPEORM_USER: Joi.string().required(),
+    TYPEORM_PASSWORD: Joi.string().required(),
+    TYPEORM_DATABASE_NAME: Joi.string().required(),
+    TYPEORM_ENTITY: Joi.string().required(),
+    TYPEORM_MIGRATIONS: Joi.string().required(),
+    TYPEORM_MIGRATIONS_DIR: Joi.string().required(),
+    TYPEORM_MIGRATIONS_TABLE: Joi.string().required(),
+  }),
+});
 
-/*---------------------------- Documentation -------------------------------------------*/
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-
-export const documentation = (app) => {
-
-  const docsConfig = new DocumentBuilder() // documentation setup
-  .setTitle('Store API Examples')
-  .setDescription('This is a store to practice Nest.js')
-  .addTag('roots')
-  .build();
-
-  const docs = SwaggerModule.createDocument(app, docsConfig);
-  SwaggerModule.setup('documentation', app, docs)
-}
