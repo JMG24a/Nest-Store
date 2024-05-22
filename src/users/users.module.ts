@@ -29,7 +29,7 @@ const typeOrmModule = TypeOrmModule.forFeature([
   imports: [ProductsModule, typeOrmModule],
   controllers: [UsersController, CustomersController, OrdersController, OrderItemController],
   providers: [UsersService, CustomersService, OrderService, OrderItemService],
-  exports: []
+  exports: [UsersService]
 })
 export class UsersModule {}
 

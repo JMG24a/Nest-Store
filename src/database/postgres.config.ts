@@ -5,7 +5,6 @@ import { configAs } from '../environments.config';
 
 const configPG = (configService: ConfigType<typeof configAs>): TypeOrmModule => {
   const { db, host, password, port, user } = configService.dataBasePg;
-
   return {
     type: 'postgres',
     database: db,

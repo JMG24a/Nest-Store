@@ -1,5 +1,3 @@
-import { BrandsService } from '../../service/brands/brand.service'
-import { createDTO, updateDTO } from '../../dto/brand.dto'
 import { ApiTags } from '@nestjs/swagger';
 import {
   Body,
@@ -9,15 +7,27 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Put
+  Put,
+  UseGuards
 } from '@nestjs/common';
+// my dependencies
+import { createDTO, updateDTO } from '../../dto/brand.dto'
+import { BrandsService } from '../../service/brands/brand.service'
+// my security
+import { Role } from 'src/auth/models/roles.model';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/role.decorator';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('brands')
 @Controller('brands')
 export class BrandsController {
   constructor(private brandsService: BrandsService){}
 
   @Get()
+  @Public()
   getBrands(){
     const success = this.brandsService.findAll({})
     return success
@@ -30,6 +40,7 @@ export class BrandsController {
   }
 
   @Post()
+  @Roles([Role.ADMIN])
   create(@Body() payload: createDTO){
     const success = this.brandsService.created(payload)
     return success

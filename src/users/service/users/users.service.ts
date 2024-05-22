@@ -1,5 +1,6 @@
-import { Repository, Between, FindOptionsWhere } from 'typeorm';
+import * as bcrypt from 'bcrypt'
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 // my dependencies
 import { OptionsFilter } from 'src/utils/filter.dto';
@@ -45,8 +46,17 @@ export class UsersService {
     return product;
   }
 
+  async findByEmail(email: string) {
+    return await this.usersRepository.findOne({
+      where: {email},
+    });
+  }
+
   async create(payload: CreateDTO) {
+
     const newUser = this.usersRepository.create(payload);
+    const hashPassword = await bcrypt.hash(newUser.password, 10);
+    newUser.password = hashPassword;
     if (payload.customerId) {
       const customer = await this.customersService.findOne(payload.customerId);
       newUser.customer = customer;
